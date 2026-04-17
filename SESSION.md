@@ -40,7 +40,7 @@ The survey identified over 30 top-level global variables.
 ## Session Summary (End)
 - **Accomplishments:**
     1. Audited and hardened the Audio Engine (clipping protection & memory leaks).
-    2. Renamed 30+ cryptic variables and functions to high-quality descriptive names.
+    2. Renamed 50+ cryptic variables, functions, and properties to high-quality descriptive names (e.g., .modifiers, .level).
     3. Created the first project README.md and mapped out global state for future encapsulation.
 - **Next Steps:**
     - Refactor the `update` function to separate Game Logic from UI updates.

@@ -141,7 +141,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .htrack{width:180px;height:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:5px;overflow:hidden}
 .hfill{height:100%;border-radius:5px;transition:width .1s}
 .hp-fill{background:linear-gradient(90deg,#dd2222,#ff6666)}
-.xp-fill{background:linear-gradient(90deg,#00bb55,#66ffaa)}
+.experience-fill{background:linear-gradient(90deg,#00bb55,#66ffaa)}
 .hval{font-family:var(--font-mono);font-size:.6rem;min-width:70px;color:#778899}
 #hudR{position:fixed;top:11px;right:16px;text-align:right;pointer-events:none;z-index:50}
 #hudTimer{font-family:var(--font-game);font-size:1.45rem;font-weight:700;color:var(--green)}
@@ -329,7 +329,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
 <!-- HUD -->
 <div id="hud">
   <div class="hbar-wrap"><span class="hlabel">HP</span><div class="htrack"><div class="hfill hp-fill" id="hpFill" style="width:100%"></div></div><span class="hval" id="hpVal"></span></div>
-  <div class="hbar-wrap"><span class="hlabel">XP</span><div class="htrack"><div class="hfill xp-fill" id="xpFill" style="width:0%"></div></div><span class="hval" id="xpVal"></span></div>
+  <div class="hbar-wrap"><span class="hlabel">XP</span><div class="htrack"><div class="hfill experience-fill" id="xpFill" style="width:0%"></div></div><span class="hval" id="xpVal"></span></div>
 </div>
 <div id="hudR">
   <div id="hudTimer">00:00</div>
@@ -419,7 +419,7 @@ function saveCfg(){saveData.cfg=config;writeSave();}
 
 // ─── Constants ────────────────────────────────────────────────────
 const WORLD_WIDTH=3000,WORLD_HEIGHT=3000,PLAYER_RADIUS=18,COLLECTIBLE_RADIUS=68,TAU=Math.PI*2;
-const XP_T=[0,22,55,100,160,235,325,435,570,730,920,1150,1420,1740,2120,2570,3100,3730,4480,5370];
+const XP_TABLE=[0,22,55,100,160,235,325,435,570,730,920,1150,1420,1740,2120,2570,3100,3730,4480,5370];
 const PAR_MULT={low:.3,med:1,hi:1.6};
 const random=()=>Math.random(), randomRange=(a,b)=>a+(b-a)*random(), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const squareDistance=(a,b)=>{const dx=a.x-b.x,dy=a.y-b.y;return dx*dx+dy*dy};
@@ -589,16 +589,16 @@ const CLASSES={
 };
 
 const UPGRADES=[
-  {id:'dmg',   name:'Venom Fang',      icon:'⚔️',maxLv:5,desc:l=>`+${l*20}% Damage`,     apply:p=>{p.S.dmgMult+=.2}},
-  {id:'as',    name:'Frenzy Glands',   icon:'⚡', maxLv:5,desc:l=>`+${l*15}% Atk Speed`,  apply:p=>{p.S.asMult+=.15}},
-  {id:'spd',   name:'Fleet Carapace',  icon:'💨', maxLv:5,desc:l=>`+${l*15}% Move Speed`, apply:p=>{p.S.spdMult+=.15}},
-  {id:'hp',    name:'Iron Chitin',     icon:'🛡', maxLv:5,desc:l=>`+${l*30} Max HP`,      apply:p=>{p.S.bonusHp+=30;p.maxHp+=30;p.hp=Math.min(p.hp+30,p.maxHp)}},
-  {id:'cd',    name:'Neural Accel',    icon:'⚗️', maxLv:5,desc:l=>`-${l*20}% Cooldowns`,  apply:p=>{p.S.cdMult=Math.max(.15,p.S.cdMult-.2)}},
-  {id:'ls',    name:'Hemolymph Drain', icon:'🩸', maxLv:3,desc:l=>`+${l*6}% Lifesteal`,   apply:p=>{p.S.lifesteal+=.06}},
-  {id:'thorn', name:'Spike Mantle',    icon:'🌵', maxLv:3,desc:l=>`Reflect ${l*15}% dmg`, apply:p=>{p.S.thorns+=.15}},
-  {id:'multi', name:'Compound Strike', icon:'✦',  maxLv:3,desc:l=>`+${l} extra hit(s)`,  apply:p=>{p.S.multiStrike+=1}},
-  {id:'poison',name:'Toxic Glands',    icon:'☠️', maxLv:3,desc:l=>`Poison ${l*2}/s`,      apply:p=>{p.S.poisonDps+=2}},
-  {id:'revive',name:'Resurrection',    icon:'✨', maxLv:1,desc:_=>`Revive once at 50% HP`,apply:p=>{p.S.revive=true}},
+  {id:'dmg',   name:'Venom Fang',      icon:'⚔️',maxLv:5,desc:l=>`+${l*20}% Damage`,     apply:p=>{p.modifiers.dmgMult+=.2}},
+  {id:'as',    name:'Frenzy Glands',   icon:'⚡', maxLv:5,desc:l=>`+${l*15}% Atk Speed`,  apply:p=>{p.modifiers.asMult+=.15}},
+  {id:'spd',   name:'Fleet Carapace',  icon:'💨', maxLv:5,desc:l=>`+${l*15}% Move Speed`, apply:p=>{p.modifiers.spdMult+=.15}},
+  {id:'hp',    name:'Iron Chitin',     icon:'🛡', maxLv:5,desc:l=>`+${l*30} Max HP`,      apply:p=>{p.modifiers.bonusHp+=30;p.maxHp+=30;p.hp=Math.min(p.hp+30,p.maxHp)}},
+  {id:'cd',    name:'Neural Accel',    icon:'⚗️', maxLv:5,desc:l=>`-${l*20}% Cooldowns`,  apply:p=>{p.modifiers.cdMult=Math.max(.15,p.modifiers.cdMult-.2)}},
+  {id:'ls',    name:'Hemolymph Drain', icon:'🩸', maxLv:3,desc:l=>`+${l*6}% Lifesteal`,   apply:p=>{p.modifiers.lifesteal+=.06}},
+  {id:'thorn', name:'Spike Mantle',    icon:'🌵', maxLv:3,desc:l=>`Reflect ${l*15}% dmg`, apply:p=>{p.modifiers.thorns+=.15}},
+  {id:'multi', name:'Compound Strike', icon:'✦',  maxLv:3,desc:l=>`+${l} extra hit(s)`,  apply:p=>{p.modifiers.multiStrike+=1}},
+  {id:'poison',name:'Toxic Glands',    icon:'☠️', maxLv:3,desc:l=>`Poison ${l*2}/s`,      apply:p=>{p.modifiers.poisonDps+=2}},
+  {id:'revive',name:'Resurrection',    icon:'✨', maxLv:1,desc:_=>`Revive once at 50% HP`,apply:p=>{p.modifiers.revive=true}},
 ];
 
 const SYNERGIES=[
@@ -608,13 +608,13 @@ const SYNERGIES=[
   {id:'ironHide',  name:'IRON HIDE',     icon:'⚙️',col:'#ffd700',req:{hp:5,thorn:3},  desc:'55% damage reduction + amplified thorns',active:false},
 ];
 
-const ETYPES={
-  ant:    {col:'#cc2200',r:10,hp:12, spd:88, dmg:5, xp:2, sc:8, elite:false,ranged:false},
-  beetle: {col:'#994400',r:14,hp:22, spd:58, dmg:9, xp:3, sc:11,elite:false,ranged:false},
-  soldier:{col:'#aa0000',r:18,hp:65, spd:68, dmg:16,xp:9, sc:28,elite:true, ranged:false},
-  hornet: {col:'#ffaa00',r:12,hp:38, spd:135,dmg:13,xp:7, sc:22,elite:true, ranged:false},
-  spitter:{col:'#00cc44',r:15,hp:48, spd:48, dmg:11,xp:8, sc:24,elite:true, ranged:true },
-  shaman: {col:'#cc00ff',r:15,hp:55, spd:50, dmg:8, xp:11,sc:32,elite:true, ranged:false},
+const ENEMY_TYPES={
+  ant:    {col:'#cc2200',r:10,hp:12, spd:88, dmg:5, experience:2, sc:8, elite:false,ranged:false},
+  beetle: {col:'#994400',r:14,hp:22, spd:58, dmg:9, experience:3, sc:11,elite:false,ranged:false},
+  soldier:{col:'#aa0000',r:18,hp:65, spd:68, dmg:16,experience:9, sc:28,elite:true, ranged:false},
+  hornet: {col:'#ffaa00',r:12,hp:38, spd:135,dmg:13,experience:7, sc:22,elite:true, ranged:false},
+  spitter:{col:'#00cc44',r:15,hp:48, spd:48, dmg:11,experience:8, sc:24,elite:true, ranged:true },
+  shaman: {col:'#cc00ff',r:15,hp:55, spd:50, dmg:8, experience:11,sc:32,elite:true, ranged:false},
 };
 
 // ─── Game State ───────────────────────────────────────────────────
@@ -624,24 +624,24 @@ let gTime=0,score=0,kills=0,waveNum=1,waveT=0,spawnT=0,spawnI=1.5,liveEnemyCount
 let cam={x:WORLD_WIDTH/2,y:WORLD_HEIGHT/2},shake={x:0,y:0,t:0,i:0};
 let lvlPending=0,synQueue=[],synT=0,killStreak=0,streakT=0;
 let keys={},lastTS=0,rafId=0;
-let _lHp=-1,_lXp=-1,_lSc=-1,_lCd=-1,_lStr=-1,_lSyn=-1;
+let lastHp=-1,lastXp=-1,lastScore=-1,lastAbilCd=-1,_lStr=-1,lastSynCount=-1;
 let sfxLastShoot=0,sfxLastHit=0,sfxLastGem=0; // throttle repetitive sfx
 
 const bgDots=Array.from({length:220},()=>({x:random()*WORLD_WIDTH,y:random()*WORLD_HEIGHT,r:random()*1.4+.3,fl:random()*3+.5}));
 
 // ─── Player ───────────────────────────────────────────────────────
-function mkPlayer(cls){
+function createPlayer(cls){
   const c=CLASSES[cls];
   return{
     x:WORLD_WIDTH/2,y:WORLD_HEIGHT/2,cls,classDef:c,color:c.color,
-    hp:c.hp,maxHp:c.hp,lv:1,xp:0,xpN:XP_T[1],
-    angle:0,invuln:0,atTimer:0,abilCd:0,trail:[],upgLv:{},
+    hp:c.hp,maxHp:c.hp,level:1,experience:0,xpN:XP_TABLE[1],
+    angle:0,invuln:0,atTimer:0,abilCd:0,trail:[],upgradeLevels:{},
     syns:new Set(),
     S:{dmgMult:1,asMult:1,spdMult:1,bonusHp:0,cdMult:1,lifesteal:0,thorns:0,multiStrike:0,poisonDps:0,revive:false,reviveUsed:false},
-    get eDmg(){return this.classDef.dmg*this.S.dmgMult},
-    get eAS() {return this.classDef.as*this.S.asMult},
-    get eSpd(){return this.classDef.spd*this.S.spdMult},
-    get eCd() {return this.classDef.abilCd*this.S.cdMult},
+    get eDmg(){return this.classDef.dmg*this.modifiers.dmgMult},
+    get eAS() {return this.classDef.as*this.modifiers.asMult},
+    get eSpd(){return this.classDef.spd*this.modifiers.spdMult},
+    get eCd() {return this.classDef.abilCd*this.modifiers.cdMult},
   };
 }
 
@@ -654,19 +654,19 @@ function spawnPos(){
   if(s===2)return{x:clamp(x0,5,WORLD_WIDTH-5),y:clamp(randomRange(y0,y1),5,WORLD_HEIGHT-5)};
   return          {x:clamp(x1,5,WORLD_WIDTH-5),y:clamp(randomRange(y0,y1),5,WORLD_HEIGHT-5)};
 }
-function mkEnemy(tk){
-  const d=ETYPES[tk],pos=spawnPos(),hs=1+waveNum*.11,ss=1+waveNum*.03;
+function createEnemy(tk){
+  const d=ENEMY_TYPES[tk],pos=spawnPos(),hs=1+waveNum*.11,ss=1+waveNum*.03;
   liveEnemyCount++;
   return{x:pos.x,y:pos.y,type:tk,col:d.col,r:d.r,
     hp:d.hp*hs,maxHp:d.hp*hs,spd:d.spd*ss,baseSpd:d.spd*ss,
-    dmg:d.dmg,xp:d.xp,sc:d.sc,elite:d.elite,ranged:d.ranged,
+    dmg:d.dmg,experience:d.experience,sc:d.sc,elite:d.elite,ranged:d.ranged,
     sTimer:0,sInt:2,healT:0,healInt:3,poisonT:0,poisonDps:0,slowT:0,flashT:0,vx:0,vy:0,dead:false};
 }
 function mkBoss(){
   const pos=spawnPos(),sc=1+waveNum*.12;
   liveEnemyCount++;
   return{x:pos.x,y:pos.y,type:'boss',col:'#ff2200',r:44,isBoss:true,
-    hp:800*sc,maxHp:800*sc,spd:52,baseSpd:52,dmg:22,xp:120,sc:500,
+    hp:800*sc,maxHp:800*sc,spd:52,baseSpd:52,dmg:22,experience:120,sc:500,
     elite:true,ranged:true,sTimer:0,sInt:.9,
     poisonT:0,poisonDps:0,slowT:0,flashT:0,vx:0,vy:0,dead:false};
 }
@@ -708,7 +708,7 @@ function dealDmg(e,dmg){
 function killEnemy(e){
   if(e.dead)return;
   e.dead=true; e.hp=0; liveEnemyCount=Math.max(0,liveEnemyCount-1);
-  gems.push({x:e.x+randomRange(-12,12),y:e.y+randomRange(-12,12),val:e.xp,
+  gems.push({x:e.x+randomRange(-12,12),y:e.y+randomRange(-12,12),val:e.experience,
     col:(e.elite||e.isBoss)?'#ffd700':'#00ff88',r:(e.elite||e.isBoss)?7:5,bob:random()*TAU});
   score+=(e.isBoss?e.sc:e.sc*waveNum); kills++;
   killStreak++; streakT=4.5;
@@ -732,8 +732,8 @@ function hurtPlayer(dmg){
   sfx('hurt');
   if(config.screenShake){shake.t=.18;shake.i=7;}
   if(player.hp<=0){
-    if(player.S.revive&&!player.S.reviveUsed){
-      player.S.reviveUsed=true;player.hp=player.maxHp*.5;player.invuln=3.5;
+    if(player.modifiers.revive&&!player.modifiers.reviveUsed){
+      player.modifiers.reviveUsed=true;player.hp=player.maxHp*.5;player.invuln=3.5;
       spawnParts(player.x,player.y,'#fff',28,180,1.2,9);
     }else endGame();
   }
@@ -751,44 +751,44 @@ function useAbility(){
   switch(player.cls){
     case'mantis':{const t=nearest(player,220);if(t){const d=player.eDmg*5.5;dealDmg(t,d);spawnParts(t.x,t.y,'#00ff88',18,180,.45,6);spawnDmg(t.x,t.y-30,d,'#00ff88');abilFx={type:'lightning',x:player.x,y:player.y,tx:t.x,ty:t.y,life:.35,maxLife:.35};}break;}
     case'scarab': player.invuln=3.5;spawnParts(player.x,player.y,'#ffd700',26,140,.55,8);abilFx={type:'shield',x:player.x,y:player.y,r:65,life:3.5,maxLife:3.5};break;
-    case'widow':  for(const e of enemies)if(!e.dead&&distance(player,e)<185){dealDmg(e,player.eDmg*2.2);e.poisonT=5;e.poisonDps=player.eDmg*.55+player.S.poisonDps;}spawnParts(player.x,player.y,'#ff0066',36,115,.75,8);abilFx={type:'cloud',x:player.x,y:player.y,r:185,life:.55,maxLife:.55};break;
-    case'wasp':   for(let i=0;i<8;i++){const a=(i/8)*TAU;projs.push({x:player.x,y:player.y,vx:Math.cos(a)*420,vy:Math.sin(a)*420,dmg:player.eDmg*2.2,col:'#ffaa00',r:6,owner:'player',poison:player.S.poisonDps,life:1.6,trail:[],dead:false});}spawnParts(player.x,player.y,'#ffaa00',16,185,.38,6);break;
+    case'widow':  for(const e of enemies)if(!e.dead&&distance(player,e)<185){dealDmg(e,player.eDmg*2.2);e.poisonT=5;e.poisonDps=player.eDmg*.55+player.modifiers.poisonDps;}spawnParts(player.x,player.y,'#ff0066',36,115,.75,8);abilFx={type:'cloud',x:player.x,y:player.y,r:185,life:.55,maxLife:.55};break;
+    case'wasp':   for(let i=0;i<8;i++){const a=(i/8)*TAU;projs.push({x:player.x,y:player.y,vx:Math.cos(a)*420,vy:Math.sin(a)*420,dmg:player.eDmg*2.2,col:'#ffaa00',r:6,owner:'player',poison:player.modifiers.poisonDps,life:1.6,trail:[],dead:false});}spawnParts(player.x,player.y,'#ffaa00',16,185,.38,6);break;
     case'moth':   for(const e of enemies)if(!e.dead&&distance(player,e)<310&&e.slowT<=0){e.spd=e.baseSpd*.28;e.slowT=4;}spawnParts(player.x,player.y,'#aa88ff',44,140,.95,9);abilFx={type:'dust',x:player.x,y:player.y,r:310,life:.6,maxLife:.6};break;
   }
 }
 function doAttack(t){
-  const cls=player.classDef,d=player.eDmg,h=1+player.S.multiStrike;
+  const cls=player.classDef,d=player.eDmg,h=1+player.modifiers.multiStrike;
   const now=performance.now();
   if(cls.ranged){
     for(let i=0;i<h;i++){
       const sp=(i-(h-1)/2)*.14,ang=Math.atan2(t.y-player.y,t.x-player.x)+sp;
       projs.push({x:player.x,y:player.y,vx:Math.cos(ang)*455,vy:Math.sin(ang)*455,
-        dmg:d,col:cls.projCol,r:cls.projR,owner:'player',poison:player.S.poisonDps,life:cls.range/455,trail:[],dead:false});
+        dmg:d,col:cls.projCol,r:cls.projR,owner:'player',poison:player.modifiers.poisonDps,life:cls.range/455,trail:[],dead:false});
     }
     if(now-sfxLastShoot>100){sfxLastShoot=now;sfx('shoot');}
   }else{
     dealDmg(t,d*h);spawnParts(t.x,t.y,player.color,5,90,.25,4);
-    if(player.S.lifesteal>0)player.hp=Math.min(player.maxHp,player.hp+d*h*player.S.lifesteal);
+    if(player.modifiers.lifesteal>0)player.hp=Math.min(player.maxHp,player.hp+d*h*player.modifiers.lifesteal);
   }
   spawnParts(player.x+Math.cos(player.angle)*38,player.y+Math.sin(player.angle)*38,player.color,3,70,.18,4);
 }
 
 // ─── Upgrades ─────────────────────────────────────────────────────
-const upgLv=id=>player.upgLv[id]||0;
+const upgradeLevels=id=>player.upgradeLevels[id]||0;
 function applyUpg(id){
-  const u=UPGRADES.find(u=>u.id===id);if(!u||upgLv(id)>=u.maxLv)return;
-  player.upgLv[id]=(player.upgLv[id]||0)+1;u.apply(player);checkSyns();
+  const u=UPGRADES.find(u=>u.id===id);if(!u||upgradeLevels(id)>=u.maxLv)return;
+  player.upgradeLevels[id]=(player.upgradeLevels[id]||0)+1;u.apply(player);checkSyns();
 }
 function checkSyns(){
   for(const syn of SYNERGIES){
     if(syn.active)continue;
-    if(Object.entries(syn.req).every(([id,n])=>upgLv(id)>=n)){
+    if(Object.entries(syn.req).every(([id,n])=>upgradeLevels(id)>=n)){
       syn.active=true;player.syns.add(syn.id);synQueue.push(syn);sfx('synergy');
     }
   }
 }
 function pick3(){
-  const pool=UPGRADES.filter(u=>upgLv(u.id)<u.maxLv),res=[];
+  const pool=UPGRADES.filter(u=>upgradeLevels(u.id)<u.maxLv),res=[];
   while(res.length<3&&pool.length>0){const i=Math.floor(random()*pool.length);res.push(pool.splice(i,1)[0]);}
   return res;
 }
@@ -811,9 +811,9 @@ function update(dt){
   spawnT+=dt;
   const maxE=25+waveNum*14;
   if(spawnT>=spawnI&&liveEnemyCount<maxE){
-    spawnT=0;enemies.push(mkEnemy(waveType()));
-    if(gTime>18&&random()<.32)enemies.push(mkEnemy(waveType()));
-    if(gTime>45&&random()<.18)enemies.push(mkEnemy(waveType()));
+    spawnT=0;enemies.push(createEnemy(waveType()));
+    if(gTime>18&&random()<.32)enemies.push(createEnemy(waveType()));
+    if(gTime>45&&random()<.18)enemies.push(createEnemy(waveType()));
   }
   if(enemies.length>260)enemies=enemies.filter(e=>!e.dead);
   if(projs.length>200)projs=projs.filter(p=>!p.dead);
@@ -866,7 +866,7 @@ function updateEnemies(dt){
     e.flashT=Math.max(0,e.flashT-dt);
     if(e.slowT>0){e.slowT-=dt;if(e.slowT<=0){e.spd=e.baseSpd;e.slowT=0;}}
     if(dd<e.r+PLAYER_RADIUS&&player.invuln<=0){
-      if(player.S.thorns>0)dealDmg(e,e.dmg*dt*1.4*player.S.thorns);
+      if(player.modifiers.thorns>0)dealDmg(e,e.dmg*dt*1.4*player.modifiers.thorns);
       hurtPlayer(e.dmg*dt*1.4);
     }
     if(e.ranged){
@@ -891,7 +891,7 @@ function updateProjectiles(dt){
       for(const e of enemies){
         if(!e.dead&&squareDistance(p,e)<(p.r+e.r)*(p.r+e.r)){
           dealDmg(e,p.dmg);if(p.poison>0){e.poisonT=3;e.poisonDps=p.poison;}
-          if(player.S.lifesteal>0)player.hp=Math.min(player.maxHp,player.hp+p.dmg*player.S.lifesteal);
+          if(player.modifiers.lifesteal>0)player.hp=Math.min(player.maxHp,player.hp+p.dmg*player.modifiers.lifesteal);
           spawnParts(p.x,p.y,p.col,5,75,.28,3);p.dead=true;break;
         }
       }
@@ -904,12 +904,12 @@ function updateGems(dt){
     const g=gems[i];g.bob+=dt*2;
     if(squareDistance(g,player)<COLLECTIBLE_RADIUS*COLLECTIBLE_RADIUS){const dx=player.x-g.x,dy=player.y-g.y,d=Math.sqrt(dx*dx+dy*dy)||1;g.x+=(dx/d)*380*dt;g.y+=(dy/d)*380*dt;}
     if(squareDistance(g,player)<(PLAYER_RADIUS+g.r)*(PLAYER_RADIUS+g.r)){
-      player.xp+=g.val;gems.splice(i,1);
+      player.experience+=g.val;gems.splice(i,1);
       const now=performance.now();
       if(now-sfxLastGem>55){sfxLastGem=now;sfx('gem');}
       spawnParts(player.x,player.y,g.col,2,55,.28,3);
       let leveled=false;
-      while(player.xp>=player.xpN&&player.lv<XP_T.length-1){player.xp-=player.xpN;player.lv++;player.xpN=XP_T[player.lv]||(player.xpN*1.35|0);lvlPending++;leveled=true;}
+      while(player.experience>=player.xpN&&player.level<XP_TABLE.length-1){player.experience-=player.xpN;player.level++;player.xpN=XP_TABLE[player.level]||(player.xpN*1.35|0);lvlPending++;leveled=true;}
       if(leveled&&gameState==='playing'){sfx('levelup');showLvlUp();}
     }
   }
@@ -926,30 +926,30 @@ function spawnBoss(){
 // ─── HUD (dirty-check) ────────────────────────────────────────────
 function updateHUD(){
   const hp=Math.max(0,player.hp/player.maxHp*100);
-  if(Math.abs(hp-_lHp)>.4){DOM.hpFill.style.width=hp.toFixed(1)+'%';DOM.hpVal.textContent=`${Math.ceil(player.hp)}/${player.maxHp}`;_lHp=hp;}
-  const xp=Math.min(100,player.xp/player.xpN*100);
-  if(Math.abs(xp-_lXp)>.4){DOM.xpFill.style.width=xp.toFixed(1)+'%';DOM.xpVal.textContent=`Lv.${player.lv}`;_lXp=xp;}
-  if(score!==_lSc){
+  if(Math.abs(hp-lastHp)>.4){DOM.hpFill.style.width=hp.toFixed(1)+'%';DOM.hpVal.textContent=`${Math.ceil(player.hp)}/${player.maxHp}`;lastHp=hp;}
+  const experience=Math.min(100,player.experience/player.xpN*100);
+  if(Math.abs(experience-lastXp)>.4){DOM.xpFill.style.width=experience.toFixed(1)+'%';DOM.xpVal.textContent=`Lv.${player.level}`;lastXp=experience;}
+  if(score!==lastScore){
     const m=Math.floor(gTime/60),s=Math.floor(gTime%60);
     DOM.hudTimer.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     DOM.hudWave.textContent=bossActive?`⚠ BOSS WAVE ${waveNum}`:`WAVE ${waveNum}`;
     DOM.hudScore.textContent=`SCORE: ${score.toLocaleString()}`;
     if(saveData.bestScore>0)DOM.hudBest.textContent=`BEST: ${saveData.bestScore.toLocaleString()}`;
-    _lSc=score;
+    lastScore=score;
   }
   if(killStreak!==_lStr){
     if(killStreak>=5){const sc=killStreak>=20?'#ff2200':killStreak>=10?'#ffaa00':'#ffd700';DOM.hudStreak.style.color=sc;DOM.hudStreak.textContent=`${killStreak}x STREAK`;}
     else DOM.hudStreak.textContent='';
     _lStr=killStreak;
   }
-  if(player.syns.size!==_lSyn){DOM.hudSyns.innerHTML=SYNERGIES.filter(s=>s.active).map(s=>`<span style="color:${s.col}">${s.icon} ${s.name}</span>`).join('<br>');_lSyn=player.syns.size;}
+  if(player.syns.size!==lastSynCount){DOM.hudSyns.innerHTML=SYNERGIES.filter(s=>s.active).map(s=>`<span style="color:${s.col}">${s.icon} ${s.name}</span>`).join('<br>');lastSynCount=player.syns.size;}
   const rdy=player.abilCd<=0,cdStr=player.abilCd.toFixed(1);
-  if((rdy?0:1)!==(_lCd>0?1:0)||(!rdy&&cdStr!==String(_lCd))){
+  if((rdy?0:1)!==(lastAbilCd>0?1:0)||(!rdy&&cdStr!==String(lastAbilCd))){
     DOM.abilInd.textContent=rdy?`[SPACE] ${player.classDef.abil} — READY`:`[SPACE] ${player.classDef.abil} — ${cdStr}s`;
     DOM.abilInd.style.color=rdy?'#88ffff':'#334455';
     DOM.abilInd.style.borderColor=rdy?'rgba(136,255,255,.45)':'rgba(50,80,100,.35)';
     DOM.abilInd.style.background=rdy?'rgba(136,255,255,.07)':'transparent';
-    _lCd=rdy?0:parseFloat(cdStr);
+    lastAbilCd=rdy?0:parseFloat(cdStr);
   }
 }
 
@@ -978,13 +978,13 @@ function showSyn(syn){
 function showLvlUp(){
   frozen=true;gameState='levelup';
   const ups=pick3();
-  DOM.luSub.textContent=`LEVEL ${player.lv} — CHOOSE AN UPGRADE`;
+  DOM.luSub.textContent=`LEVEL ${player.level} — CHOOSE AN UPGRADE`;
   DOM.upgCards.innerHTML='';
-  if(ups.length===0){score+=500*player.lv;lvlPending=0;frozen=false;gameState='playing';return;}
+  if(ups.length===0){score+=500*player.level;lvlPending=0;frozen=false;gameState='playing';return;}
   ups.forEach(u=>{
-    const lv=upgLv(u.id);
+    const level=upgradeLevels(u.id);
     const card=document.createElement('div');card.className='ucrd';
-    card.innerHTML=`<div class="uicon">${u.icon}</div><div class="uname">${u.name}</div><div class="udesc">${u.desc(lv+1)}</div><div class="ulvl">Lv ${lv+1}/${u.maxLv}</div>`;
+    card.innerHTML=`<div class="uicon">${u.icon}</div><div class="uname">${u.name}</div><div class="udesc">${u.desc(level+1)}</div><div class="ulvl">Lv ${level+1}/${u.maxLv}</div>`;
     card.onclick=()=>{
       applyUpg(u.id);lvlPending--;
       showScreen(null);
@@ -1016,7 +1016,7 @@ function endGame(){
   const title=kills>=100?'APEX PREDATOR':kills>=50?'WARRIOR':kills>=20?'FIGHTER':'CONSUMED';
   const titleCol=kills>=100?'#ffd700':kills>=50?'#ffaa00':kills>=20?'#88ffff':'#ff3333';
   DOM.goTitle.textContent=title;DOM.goTitle.style.color=titleCol;DOM.goTitle.style.textShadow=`0 0 28px ${titleCol}55`;
-  DOM.goStats.innerHTML=`Survived: ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}<br>Score: ${score.toLocaleString()}<br>Kills: ${kills.toLocaleString()}<br>Waves Cleared: ${waveNum}<br>Level Reached: ${player.lv}<br>Upgrades: ${Object.values(player.upgLv).reduce((a,b)=>a+b,0)}<br>Class: ${player.classDef.name}`;
+  DOM.goStats.innerHTML=`Survived: ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}<br>Score: ${score.toLocaleString()}<br>Kills: ${kills.toLocaleString()}<br>Waves Cleared: ${waveNum}<br>Level Reached: ${player.level}<br>Upgrades: ${Object.values(player.upgradeLevels).reduce((a,b)=>a+b,0)}<br>Class: ${player.classDef.name}`;
   DOM.goBest.textContent=newBest?'★ NEW BEST SCORE ★':`Best: ${saveData.bestScore.toLocaleString()}`;
   DOM.goBest.style.color=newBest?'#ffd700':'#445566';
   DOM.goAmber.innerHTML=`+${amber} <span style="color:#ffaa00">AMBER</span> earned<br><span style="font-size:.8rem;color:#664400">Total: ${saveData.amber.toLocaleString()}</span>`;
@@ -1029,7 +1029,7 @@ function togglePause(){
   if(gameState==='playing'){
     gameState='paused';frozen=true;
     const m=Math.floor(gTime/60),s=Math.floor(gTime%60);
-    DOM.pauseStats.innerHTML=`Time: ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} &nbsp;·&nbsp; Wave: ${waveNum} &nbsp;·&nbsp; Score: ${score.toLocaleString()}<br>Kills: ${kills} &nbsp;·&nbsp; Level: ${player.lv} &nbsp;·&nbsp; Synergies: ${player.syns.size}`;
+    DOM.pauseStats.innerHTML=`Time: ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} &nbsp;·&nbsp; Wave: ${waveNum} &nbsp;·&nbsp; Score: ${score.toLocaleString()}<br>Kills: ${kills} &nbsp;·&nbsp; Level: ${player.level} &nbsp;·&nbsp; Synergies: ${player.syns.size}`;
     showScreen('sPause');
   }else if(gameState==='paused'){
     gameState='playing';frozen=false;showScreen(null);
@@ -1192,9 +1192,9 @@ function startGame(cls){
   enemies=[];projs=[];gems=[];parts=[];dmgNums=[];abilFx=null;bossActive=false;
   gTime=0;score=0;kills=0;waveNum=1;waveT=0;spawnT=0;spawnI=1.5;liveEnemyCount=0;
   lvlPending=0;synQueue=[];synT=0;killStreak=0;streakT=0;frozen=false;
-  _lHp=-1;_lXp=-1;_lSc=-1;_lCd=-1;_lStr=-1;_lSyn=-1;
+  lastHp=-1;lastXp=-1;lastScore=-1;lastAbilCd=-1;_lStr=-1;lastSynCount=-1;
   SYNERGIES.forEach(s=>s.active=false);
-  player=mkPlayer(cls);cam.x=player.x;cam.y=player.y;
+  player=createPlayer(cls);cam.x=player.x;cam.y=player.y;
   DOM.hud.style.display='block';DOM.abilInd.style.display='block';
   DOM.volHud.style.display='block';
   DOM.synNotif.style.display='none';DOM.waveBanner.style.display='none';
